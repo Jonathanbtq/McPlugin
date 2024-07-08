@@ -2,3 +2,21 @@ name: TutoPlugin
 version: '1.0'
 api-version: '1.20'
 main: me.greanor.TutoPlugin.main
+commands:
+  getsword:
+    description: Give player sword
+    usage: /getsword <player>
+  givexp:
+    description: Give player xp
+    usage: /givexp <player> <amount>
+  gm:
+    description: give gamemode by number
+    usage: /gm <number>
+
+permissions:
+  main.givexp:
+    description: Permet de donner des niveaux d'expérience à un joueur
+    default: op
+  main.getsword:
+    description: Permet de donner une épée à un joueur
+    default: op
