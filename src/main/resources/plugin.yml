@@ -12,6 +12,9 @@ commands:
   gm:
     description: give gamemode by number
     usage: /gm <number>
+  startdac:
+    description: lancement du des a coudre
+    usage: /startdac
 
 permissions:
   main.givexp:
@@ -19,4 +22,7 @@ permissions:
     default: op
   main.getsword:
     description: Permet de donner une épée à un joueur
+    default: op
+  main.startdac:
+    description: lancement du des a coudre
     default: op

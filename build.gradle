@@ -16,9 +16,14 @@ repositories {
         name = 'spigot-repo'
         url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
     }
+    maven {
+        name = 'PlugMan'
+        url = 'https://raw.githubusercontent.com/TheBlackEntity/PlugMan/repository/'
+    }
 }
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT'
+    compileOnly 'com.rylinaux:PlugMan:2.3.3'
 }
 
 compileJava.options.encoding = 'UTF-8'

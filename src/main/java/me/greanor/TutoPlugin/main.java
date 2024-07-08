@@ -4,14 +4,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
+import org.bukkit.Location;
 
-public class main extends JavaPlugin {
+public class main extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // Code à exécuter lors de l'activation du plugin
@@ -19,6 +26,7 @@ public class main extends JavaPlugin {
 
         // Enregistrer l'écouteur d'événements
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
+        getServer().getPluginManager().registerEvents(this, this);
     }
 
     @Override
@@ -30,6 +38,26 @@ public class main extends JavaPlugin {
     public void sendCustomMessage(Player player, String message) {
         String customMessage = ChatColor.AQUA + "[Enkidiev] " + ChatColor.RESET + message;
         Bukkit.broadcastMessage(customMessage);
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (event.getAction().toString().contains("LEFT_CLICK") && player.getInventory().getItemInMainHand().getType() == Material.TNT) {
+            player.sendMessage("CLICK !");
+
+            if (player.getInventory().getItemInMainHand().getType() == Material.TNT) {
+                TNTPrimed tnt = (TNTPrimed) player.getWorld().spawnEntity(player.getEyeLocation(), EntityType.PRIMED_TNT);
+                tnt.setFuseTicks(80);
+
+                Vector direction = player.getLocation().getDirection().normalize();
+                tnt.setVelocity(direction.multiply(2));
+
+                if (event.getAction().toString().contains("W")) {
+                    player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
+                }
+            }
+        }
     }
 
     @Override
@@ -141,6 +169,23 @@ public class main extends JavaPlugin {
                 sender.sendMessage("Cette commande ne peut être utilisée que par un joueur.");
             }
             return true;
+        }
+
+        if (command.getName().equalsIgnoreCase("startdac")) {
+            double posx = 146;
+            double posy = -40;
+
+            Player player = (Player) sender;
+
+            if (!player.hasPermission("teleportplugin.teleportme")) {
+                player.sendMessage("Vous n'avez pas la permission d'utiliser cette commande.");
+                return true;
+            }
+
+            Location location = new Location(player.getWorld(), posx, 92, posy);
+            player.teleport(location);
+
+            Bukkit.broadcastMessage("Dés a coudre démarrer");
         }
         return false;
     }
