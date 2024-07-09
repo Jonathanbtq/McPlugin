@@ -171,6 +171,9 @@ public class main extends JavaPlugin implements Listener {
             return true;
         }
 
+        /*
+        * Des à coudre --- MINI GAME ---
+        */
         if (command.getName().equalsIgnoreCase("startdac")) {
             double posx = 146;
             double posy = -40;
