@@ -15,6 +15,10 @@ commands:
   startdac:
     description: lancement du des a coudre
     usage: /startdac
+  savedacposition:
+    description: Saves the player's current position
+  getdacpositions:
+    description: Lists all saved positions
 
 permissions:
   main.givexp:

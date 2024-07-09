@@ -4,8 +4,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -18,11 +20,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.bukkit.Location;
 
+import java.io.File;
+import java.util.List;
+import java.io.IOException;
+
 public class main extends JavaPlugin implements Listener {
+
+    private File configFile;
+    private FileConfiguration config;
+
     @Override
     public void onEnable() {
         // Code à exécuter lors de l'activation du plugin
         getLogger().info("MonPlugin est activé !");
+
+        createConfig();
 
         // Enregistrer l'écouteur d'événements
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
@@ -58,6 +70,95 @@ public class main extends JavaPlugin implements Listener {
                 }
             }
         }
+    }
+
+    private void createConfig() {
+        configFile = new File(getDataFolder(), "positions.yml");
+        if (!configFile.exists()) {
+            configFile.getParentFile().mkdirs();
+            saveResource("positions.yml", false);
+        }
+        config = YamlConfiguration.loadConfiguration(configFile);
+    }
+
+    public void saveConfig() {
+        try {
+            config.save(configFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveDacPlayerPosition(Player player) {
+        String playerName = player.getName();
+        Location location = player.getLocation();
+        String position = location.getWorld().getName() + "," + location.getX() + "," + location.getY() + "," + location.getZ()
+                + "," + location.getYaw() + "," + location.getPitch();
+
+        List<String> positions = config.getStringList(playerName);
+        positions.add(position);
+        config.set(playerName, positions);
+        saveConfig();
+
+        player.sendMessage("Position saved: " + position);
+    }
+
+    private void listPlayerDacPositions(Player player) {
+        String playerName = player.getName();
+        List<String> positions = config.getStringList(playerName);
+
+        if (positions.isEmpty()) {
+            player.sendMessage("No positions saved.");
+        } else {
+            player.sendMessage("Saved positions:");
+            for (String position : positions) {
+                player.sendMessage(position);
+            }
+        }
+    }
+
+    private void teleportDacPlayerToSavedPosition(Player player) {
+        String playerName = player.getName();
+        List<String> positions = config.getStringList(playerName);
+
+        if (positions.isEmpty()) {
+            player.sendMessage("No positions saved. Teleporting to default position.");
+            teleportToDefaultPosition(player);
+        } else {
+            String[] positionParts = positions.get(0).split(",");
+            if (positionParts.length < 6) {
+                player.sendMessage("Invalid saved position format. Teleporting to default position.");
+                teleportToDefaultPosition(player);
+                return;
+            }
+
+            World world = Bukkit.getWorld(positionParts[0]);
+            if (world == null) {
+                player.sendMessage("World not found: " + positionParts[0]);
+                return;
+            }
+
+            double x = Double.parseDouble(positionParts[1]);
+            double y = Double.parseDouble(positionParts[2]);
+            double z = Double.parseDouble(positionParts[3]);
+            float yaw = Float.parseFloat(positionParts[4]);
+            float pitch = Float.parseFloat(positionParts[5]);
+
+            Location location = new Location(world, x, y, z, yaw, pitch);
+            player.teleport(location);
+            player.sendMessage("Teleported to saved position: " + location.toString());
+        }
+    }
+
+    private void teleportToDefaultPosition(Player player) {
+        World world = Bukkit.getWorld("world"); // Nom du monde par défaut
+        double x = 146;
+        double y = -40;
+        double z = 0; // Ajout de la coordonnée Z par défaut
+
+        Location defaultLocation = new Location(world, x, y, z);
+        player.teleport(defaultLocation);
+        player.sendMessage("Teleported to default position: " + defaultLocation.toString());
     }
 
     @Override
@@ -174,22 +275,19 @@ public class main extends JavaPlugin implements Listener {
         /*
         * Des à coudre --- MINI GAME ---
         */
-        if (command.getName().equalsIgnoreCase("startdac")) {
-            double posx = 146;
-            double posy = -40;
+        Player player = (Player) sender;
 
-            Player player = (Player) sender;
-
-            if (!player.hasPermission("teleportplugin.teleportme")) {
-                player.sendMessage("Vous n'avez pas la permission d'utiliser cette commande.");
-                return true;
-            }
-
-            Location location = new Location(player.getWorld(), posx, 92, posy);
-            player.teleport(location);
-
-            Bukkit.broadcastMessage("Dés a coudre démarrer");
+        if (command.getName().equalsIgnoreCase("savedacposition")) {
+            saveDacPlayerPosition(player);
+            return true;
+        } else if (command.getName().equalsIgnoreCase("getdacpositions")) {
+            listPlayerDacPositions(player);
+            return true;
+        } else if (command.getName().equalsIgnoreCase("startdac")) {
+            teleportDacPlayerToSavedPosition(player);
+            return true;
         }
+        
         return false;
     }
 }
