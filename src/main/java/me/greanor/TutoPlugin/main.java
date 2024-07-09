@@ -193,3 +193,5 @@ public class main extends JavaPlugin implements Listener {
         return false;
     }
 }
+
+// player.getLocation().getX() /// player.getLocation().getY()
